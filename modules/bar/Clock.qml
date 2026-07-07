@@ -6,7 +6,8 @@ Text {
 
     property var now: new Date()
 
-    text: Qt.formatDateTime(now, "ddd d MMM  HH:mm")
+    // Sophie's preferred date format: D/M/YYYY, leading zeros stripped.
+    text: Qt.formatDateTime(now, "d/M/yyyy  HH:mm")
     font.family: Theme.fontFamily
     font.pixelSize: Theme.fontSize
     color: Theme.text
