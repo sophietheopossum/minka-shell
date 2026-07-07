@@ -1,4 +1,4 @@
-# minka-shell
+# MinkaShell
 
 Quickshell (Qt6/QML) half of the Minka hybrid shell. Owns the widget- and
 service-heavy surfaces (bar, menus, tray, notifications); the Guido (Rust +
@@ -40,10 +40,10 @@ design artifact for the full architecture.
 ```sh
 sudo pacman -S quickshell   # cachyos-extra, 0.3.0 at time of writing
 
-qs -p /home/seirra/Documents/src/MinkaDE/minka-shell
+qs -p /home/seirra/Documents/src/MinkaDE/MinkaShell
 ```
 
-or make it the default config: `ln -s /home/seirra/Documents/src/MinkaDE/minka-shell ~/.config/quickshell`.
+or make it the default config: `ln -s /home/seirra/Documents/src/MinkaDE/MinkaShell ~/.config/quickshell`.
 
 Requires a running ShojiWM session whose config creates the IPC server
 (`createIpcServer()` — already present in `~/.config/shojiwm/src/index.tsx`).
