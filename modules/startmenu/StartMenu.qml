@@ -13,14 +13,32 @@ PanelWindow {
     readonly property bool open: MenuState.isOpen("start", modelData.name)
     property string query: ""
 
+    // Search across everything a user might know the app by: display name,
+    // description, desktop id, executable, and keywords. (Lesson from CMST:
+    // its Name is "Connman UI Setup" — only Exec/id contain "cmst".)
+    function entryMatches(entry, q) {
+        const fields = [entry.name, entry.genericName, entry.comment, entry.id, entry.execString];
+        if (entry.keywords)
+            for (const keyword of entry.keywords)
+                fields.push(keyword);
+        return fields.some(f => f && String(f).toLowerCase().includes(q));
+    }
+
     readonly property var apps: {
         const all = DesktopEntries.applications.values;
         const q = query.trim().toLowerCase();
-        const list = q === ""
-            ? all.slice()
-            : all.filter(a => a.name.toLowerCase().includes(q)
-                || (a.comment && a.comment.toLowerCase().includes(q)));
-        list.sort((a, b) => a.name.localeCompare(b.name));
+        const list = q === "" ? all.slice() : all.filter(a => entryMatches(a, q));
+        // Name-prefix hits first (so "fir" ranks Firefox above LibreOffice
+        // Writer's comment), then alphabetical.
+        list.sort((a, b) => {
+            if (q !== "") {
+                const aPrefix = a.name.toLowerCase().startsWith(q);
+                const bPrefix = b.name.toLowerCase().startsWith(q);
+                if (aPrefix !== bPrefix)
+                    return aPrefix ? -1 : 1;
+            }
+            return a.name.localeCompare(b.name);
+        });
         return list;
     }
 
