@@ -35,7 +35,11 @@ design artifact for the full architecture.
       middle-click mutes) + menu with slider/mute for default sink and
       source via PipeWire. Audio only — network is handled by CMST, per
       Sophie.
-- [ ] M2 remainder: window titles in the bar, dock pinning. Out of scope by
+- [x] Focused-window title in the bar (per monitor, elided at 320px).
+- [x] Fixes from testing: tray right-click menus now open via QsMenuAnchor
+      (the display() path errored on CMST); launcher search matches desktop
+      id/exec/keywords, with name-prefix hits ranked first.
+- [ ] M2 remainder: dock pinning (waits on dock testing). Out of scope by
       decision: clipboard menu (dropped), wallpaper switcher (moves to the
       future Minka settings utility).
 - [ ] M3: `minka-fx` (Guido) takes snap preview + OSDs; drop the `ags request`
