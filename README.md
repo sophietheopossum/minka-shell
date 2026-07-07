@@ -29,10 +29,15 @@ design artifact for the full architecture.
       windows with focus indicator, click to activate.
 - [x] Notification popups (`org.freedesktop.Notifications` server in
       `services/Notifs.qml`), panel-output only, 6s expiry, click to dismiss.
-- [ ] M2 remainder: clock calendar menu, status menu (audio only — network is
-      handled by CMST, per Sophie), window titles in the bar, dock pinning.
-      Out of scope by decision: clipboard menu (dropped), wallpaper switcher
-      (moves to the future Minka settings utility).
+- [x] Calendar menu: bar clock toggles a Monday-first month view, today in
+      red, ‹/› month paging, click the title to jump back to today.
+- [x] Audio status menu: `vol` widget in the bar (click opens, scroll ±5%,
+      middle-click mutes) + menu with slider/mute for default sink and
+      source via PipeWire. Audio only — network is handled by CMST, per
+      Sophie.
+- [ ] M2 remainder: window titles in the bar, dock pinning. Out of scope by
+      decision: clipboard menu (dropped), wallpaper switcher (moves to the
+      future Minka settings utility).
 - [ ] M3: `minka-fx` (Guido) takes snap preview + OSDs; drop the `ags request`
       exec path once shoji-bar-2 retires. Dock testing also waits for
       shoji-bar-2 retirement (its dock currently owns the proximity zone).
