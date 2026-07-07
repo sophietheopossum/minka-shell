@@ -10,7 +10,7 @@ PanelWindow {
 
     required property var modelData
 
-    readonly property bool open: MenuState.startMenuOpen[modelData.name] === true
+    readonly property bool open: MenuState.isOpen("start", modelData.name)
     property string query: ""
 
     readonly property var apps: {

@@ -48,7 +48,7 @@ PanelWindow {
                 width: 24
                 height: 22
                 radius: 5
-                color: MenuState.startMenuOpen[root.modelData.name] === true ? Theme.redDim
+                color: MenuState.isOpen("start", root.modelData.name) ? Theme.redDim
                      : startArea.containsMouse ? Theme.surfaceRaised
                      : "transparent"
 
@@ -63,7 +63,7 @@ PanelWindow {
                     id: startArea
                     anchors.fill: parent
                     hoverEnabled: true
-                    onClicked: MenuState.startMenu(root.modelData.name, "toggle")
+                    onClicked: MenuState.toggle("start", root.modelData.name)
                 }
             }
 
