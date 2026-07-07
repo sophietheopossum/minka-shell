@@ -4,8 +4,8 @@ import QtQuick
 import "../../services"
 
 // StatusNotifier tray. Left click activates (or opens the menu for
-// menu-only items); right click opens the item's menu as a platform menu
-// anchored under the icon.
+// menu-only items); right click opens the item's DBus menu as a native
+// popup anchored under the icon; middle click secondary-activates.
 Row {
     id: root
 
@@ -32,6 +32,19 @@ Row {
                 opacity: trayArea.containsMouse ? 1.0 : 0.85
             }
 
+            // Native menu popup anchored to this icon, opening downward
+            // from under the bar. (The previous display() call referenced
+            // the QsWindow attached property from plain JS, which is
+            // invalid and errored on menu-carrying items like CMST.)
+            QsMenuAnchor {
+                id: menuAnchor
+
+                menu: trayItem.modelData.menu
+                anchor.item: trayItem
+                anchor.edges: Edges.Bottom
+                anchor.gravity: Edges.Bottom
+            }
+
             MouseArea {
                 id: trayArea
                 anchors.fill: parent
@@ -42,11 +55,8 @@ Row {
                     if (mouse.button === Qt.MiddleButton) {
                         item.secondaryActivate();
                     } else if (mouse.button === Qt.RightButton || item.onlyMenu) {
-                        if (item.hasMenu) {
-                            const window = QsWindow.window;
-                            const pos = trayItem.mapToItem(window.contentItem, 0, trayItem.height);
-                            item.display(window, pos.x, pos.y);
-                        }
+                        if (item.hasMenu)
+                            menuAnchor.open();
                     } else {
                         item.activate();
                     }
