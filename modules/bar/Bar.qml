@@ -73,9 +73,28 @@ PanelWindow {
             }
         }
 
-        Clock {
+        // Clock doubles as the calendar-menu toggle.
+        Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
+            width: clock.implicitWidth + 16
+            height: 22
+            radius: 5
+            color: MenuState.isOpen("calendar", root.modelData.name) ? Theme.redDim
+                 : clockArea.containsMouse ? Theme.surfaceRaised
+                 : "transparent"
+
+            Clock {
+                id: clock
+                anchors.centerIn: parent
+            }
+
+            MouseArea {
+                id: clockArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: MenuState.toggle("calendar", root.modelData.name)
+            }
         }
 
         Row {
@@ -86,6 +105,11 @@ PanelWindow {
 
             SysUsage {
                 anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Volume {
+                anchors.verticalCenter: parent.verticalCenter
+                monitorName: root.modelData.name
             }
 
             SystemTrayWidget {
