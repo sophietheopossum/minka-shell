@@ -34,11 +34,43 @@ PanelWindow {
             color: Theme.line
         }
 
-        Workspaces {
+        Row {
             anchors.left: parent.left
             anchors.leftMargin: 10
             anchors.verticalCenter: parent.verticalCenter
-            monitorName: root.modelData.name
+            spacing: 12
+
+            // Start-menu toggle.
+            Rectangle {
+                id: startButton
+
+                anchors.verticalCenter: parent.verticalCenter
+                width: 24
+                height: 22
+                radius: 5
+                color: MenuState.startMenuOpen[root.modelData.name] === true ? Theme.redDim
+                     : startArea.containsMouse ? Theme.surfaceRaised
+                     : "transparent"
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "❖"
+                    font.pixelSize: Theme.fontSize + 1
+                    color: startArea.containsMouse ? Theme.red : Theme.textMuted
+                }
+
+                MouseArea {
+                    id: startArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: MenuState.startMenu(root.modelData.name, "toggle")
+                }
+            }
+
+            Workspaces {
+                anchors.verticalCenter: parent.verticalCenter
+                monitorName: root.modelData.name
+            }
         }
 
         Clock {
@@ -46,19 +78,37 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
         }
 
-        // IPC health: red until the first workspace view arrives on the
-        // current connection. Tray, battery, status menus join here in M2.
-        Rectangle {
+        Row {
             anchors.right: parent.right
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
-            width: 7
-            height: 7
-            radius: 3.5
-            color: ShojiIpc.ready ? Theme.redDim : Theme.red
+            spacing: 12
 
-            Behavior on color {
-                ColorAnimation { duration: 200 }
+            SysUsage {
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            SystemTrayWidget {
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Battery {
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            // IPC health: red until the first workspace view arrives on the
+            // current connection. A keeper — Sophie wants this in the final
+            // release as a design detail.
+            Rectangle {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 7
+                height: 7
+                radius: 3.5
+                color: ShojiIpc.ready ? Theme.redDim : Theme.red
+
+                Behavior on color {
+                    ColorAnimation { duration: 200 }
+                }
             }
         }
     }
