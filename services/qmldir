@@ -1,0 +1,3 @@
+singleton ShojiIpc 1.0 ShojiIpc.qml
+singleton ShellLayout 1.0 ShellLayout.qml
+singleton Theme 1.0 Theme.qml
