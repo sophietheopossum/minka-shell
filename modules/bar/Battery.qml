@@ -10,8 +10,9 @@ Row {
     readonly property var device: UPower.displayDevice
     readonly property bool present: device !== null && device.isLaptopBattery
     readonly property bool charging: present && device.state === UPowerDeviceState.Charging
-    // UPowerDevice.percentage is 0-100 (energy / energyCapacity).
-    readonly property int percent: present ? Math.round(device.percentage) : 0
+    // UPowerDevice.percentage is a 0-1 fraction (confirmed on hardware:
+    // rendering it raw showed "1%" at full charge).
+    readonly property int percent: present ? Math.round(device.percentage * 100) : 0
     readonly property bool low: present && !charging && percent <= 20
 
     visible: present
