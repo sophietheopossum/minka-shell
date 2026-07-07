@@ -1,0 +1,57 @@
+import Quickshell
+import Quickshell.Services.SystemTray
+import QtQuick
+import "../../services"
+
+// StatusNotifier tray. Left click activates (or opens the menu for
+// menu-only items); right click opens the item's menu as a platform menu
+// anchored under the icon.
+Row {
+    id: root
+
+    spacing: 6
+
+    Repeater {
+        model: SystemTray.items
+
+        delegate: Item {
+            id: trayItem
+
+            required property var modelData
+
+            width: 18
+            height: 18
+            anchors.verticalCenter: parent.verticalCenter
+
+            Image {
+                anchors.fill: parent
+                source: trayItem.modelData.icon
+                sourceSize.width: 18
+                sourceSize.height: 18
+                fillMode: Image.PreserveAspectFit
+                opacity: trayArea.containsMouse ? 1.0 : 0.85
+            }
+
+            MouseArea {
+                id: trayArea
+                anchors.fill: parent
+                hoverEnabled: true
+                acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+                onClicked: mouse => {
+                    const item = trayItem.modelData;
+                    if (mouse.button === Qt.MiddleButton) {
+                        item.secondaryActivate();
+                    } else if (mouse.button === Qt.RightButton || item.onlyMenu) {
+                        if (item.hasMenu) {
+                            const window = QsWindow.window;
+                            const pos = trayItem.mapToItem(window.contentItem, 0, trayItem.height);
+                            item.display(window, pos.x, pos.y);
+                        }
+                    } else {
+                        item.activate();
+                    }
+                }
+            }
+        }
+    }
+}
