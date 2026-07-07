@@ -4,6 +4,8 @@ import "modules/bar"
 import "modules/dock"
 import "modules/startmenu"
 import "modules/notifications"
+import "modules/calendar"
+import "modules/status"
 
 // Minka shell entry point. One surface set per output; ShellLayout decides
 // which outputs show persistent surfaces (Duo mode pins them to the
@@ -30,6 +32,14 @@ ShellRoot {
             }
 
             NotifPopup {
+                modelData: scope.modelData
+            }
+
+            CalendarMenu {
+                modelData: scope.modelData
+            }
+
+            StatusMenu {
                 modelData: scope.modelData
             }
         }
