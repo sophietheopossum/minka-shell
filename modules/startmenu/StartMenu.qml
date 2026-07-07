@@ -158,6 +158,9 @@ PanelWindow {
 
                 Repeater {
                     model: [
+                        // Ends the whole login session (compositor included);
+                        // the display manager takes over from there.
+                        { label: "logout", command: ["sh", "-c", "loginctl terminate-session \"$XDG_SESSION_ID\""] },
                         { label: "sleep", command: ["systemctl", "suspend"] },
                         { label: "reboot", command: ["systemctl", "reboot"] },
                         { label: "off", command: ["systemctl", "poweroff"] }
