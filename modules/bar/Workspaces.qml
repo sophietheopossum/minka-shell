@@ -1,0 +1,81 @@
+import QtQuick
+import "../../services"
+
+// Workspace pills for one output, bound to ShojiIpc.view (pushed by the
+// workspaces.changed broadcast — no polling). Click activates; middle-click
+// toggles tiling for this monitor, mirroring shoji-bar-2.
+Row {
+    id: root
+
+    required property string monitorName
+
+    readonly property var monitor: ShojiIpc.monitorView(monitorName)
+
+    spacing: 5
+
+    Repeater {
+        model: root.monitor ? root.monitor.workspaces : []
+
+        delegate: Rectangle {
+            id: pill
+
+            required property var modelData
+
+            readonly property bool active: modelData.active
+
+            width: Math.max(22, label.implicitWidth + 12)
+            height: 20
+            radius: 4
+            color: active ? Theme.red
+                 : pillArea.containsMouse ? Theme.surfaceRaised
+                 : "transparent"
+            border.width: 1
+            border.color: active ? Theme.red
+                        : modelData.windowCount > 0 ? Theme.textFaint
+                        : Theme.line
+
+            Behavior on color {
+                ColorAnimation { duration: 120 }
+            }
+
+            Text {
+                id: label
+                anchors.centerIn: parent
+                text: pill.modelData.index + 1
+                font.family: Theme.monoFamily
+                font.pixelSize: Theme.fontSize - 1
+                color: pill.active ? Theme.ground
+                     : pill.modelData.windowCount > 0 ? Theme.text
+                     : Theme.textFaint
+            }
+
+            MouseArea {
+                id: pillArea
+                anchors.fill: parent
+                hoverEnabled: true
+                acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                onClicked: mouse => {
+                    if (mouse.button === Qt.MiddleButton)
+                        ShojiIpc.toggleTiling(root.monitorName);
+                    else
+                        ShojiIpc.activateWorkspace(root.monitorName, pill.modelData.index);
+                }
+            }
+        }
+    }
+
+    // Tiling-mode marker for the active workspace (shoji-bar-2's LayoutMode).
+    Text {
+        visible: root.monitor !== null
+        anchors.verticalCenter: parent.verticalCenter
+        leftPadding: 4
+        text: {
+            const ws = root.monitor
+                ? root.monitor.workspaces.find(w => w.active)
+                : null;
+            return ws && ws.isTiled ? "◫" : "◰";
+        }
+        font.pixelSize: Theme.fontSize
+        color: Theme.purple
+    }
+}
