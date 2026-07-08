@@ -7,20 +7,26 @@ import "../../services"
 // menu tree through QsMenuOpener and draw it ourselves — which also keeps it
 // in the Eternal-Darkness theme instead of a foreign Qt popup.
 //
-// Two hard-won rules encoded here:
+// Hard-won rules encoded here:
 //  1. The popup window is sized ONCE at open and never resized while
-//     mapped (the menu box grows inside a transparent window instead) —
-//     resizing a mapped popup is compositor-hostile.
+//     mapped — resizing a mapped popup is compositor-hostile. It spans the
+//     whole output below the bar; the visible menu box grows inside it and
+//     the transparent remainder doubles as a click-outside backdrop.
 //  2. The root menu handle stays pinned by a dedicated opener for as long
 //     as the popup is open. quickshell destroys the ENTIRE dbusmenu tree
 //     when the root handle's refcount drops to zero (dbusmenu.cpp:
 //     unrefHandle -> onMenuPathChanged -> deleteLater), so a lone opener
 //     that navigates from the root into a child entry frees the very entry
-//     it navigated to — the submenu flashes empty, then collapses. Layout
-//     updates reuse items by id, so pinned entries survive them. Corollary:
-//     openers must live at window scope, never inside delegates — a layout
-//     update resets the model, tears down the delegate (and its opener),
-//     and loops via AboutToShow.
+//     it navigated to. The submenu opener only attaches while inside a
+//     submenu — two simultaneous refs on the root double-fire AboutToShow
+//     and Qt's dbusmenu exporter answers each with a layout update, keeping
+//     the children model in permanent churn. Openers live at window scope,
+//     never inside delegates: a layout update resets the model and would
+//     tear the opener down with its delegate.
+//  3. No hover-timeout dismissal. Layout updates rebuild delegates, which
+//     momentarily collapses the box and drops hover state, so any
+//     "close when the pointer leaves" timer eventually fires while the
+//     user is still in the menu. Dismissal is click-outside only.
 PopupWindow {
     id: root
 
@@ -29,29 +35,35 @@ PopupWindow {
     // Navigation stack of QsMenuEntry handles; empty = at the root menu.
     property var menuPath: []
 
-    readonly property var currentMenu: menuPath.length > 0
-        ? menuPath[menuPath.length - 1] : menuHandle
+    readonly property var currentSubmenu: menuPath.length > 0
+        ? menuPath[menuPath.length - 1] : null
+
+    readonly property var currentChildren: menuPath.length > 0
+        ? subOpener.children : rootOpener.children
 
     property int fixedHeight: 440
-
-    // Auto-dismiss when the pointer has left the menu box for a moment.
-    property bool pointerInside: false
+    property int boxX: 0
+    readonly property int boxWidth: 260
 
     visible: false
-    implicitWidth: 260
+    implicitWidth: 800
     implicitHeight: fixedHeight
     color: "transparent"
 
+    // x is the desired box position in the anchor window's coordinates;
+    // y is where the popup's top edge goes (just below the bar).
     function openAt(window, x, y, handle) {
         menuHandle = handle;
         menuPath = [];
         anchor.window = window;
-        anchor.rect.x = x;
+        anchor.rect.x = 0;
         anchor.rect.y = y;
-        // Everything below the bar down to the screen edge, capped: the
-        // window must never change size while mapped.
-        const screenHeight = window.screen ? window.screen.height : 600;
-        fixedHeight = Math.max(120, Math.min(440, screenHeight - y - 16));
+        // Cover the output below the bar so the backdrop catches every
+        // outside click. Sized here, before mapping, and never again.
+        const screen = window.screen;
+        implicitWidth = screen ? screen.width : window.width;
+        fixedHeight = Math.max(120, (screen ? screen.height : 600) - y - 8);
+        boxX = Math.max(8, Math.min(x, implicitWidth - boxWidth - 8));
         visible = true;
     }
 
@@ -70,25 +82,22 @@ PopupWindow {
     }
 
     // Pin: holds a ref on the root handle for the popup's lifetime so the
-    // tree (and any entry the nav opener points at) is never freed mid-use.
+    // tree (and any entry the submenu opener points at) is never freed
+    // mid-use. Also the model rendered while at the root level.
     QsMenuOpener {
+        id: rootOpener
+
         menu: root.menuHandle
     }
 
-    // Nav: follows the navigation stack; renders whichever level is current.
+    // Attached only while navigated into a submenu (see rule 2).
     QsMenuOpener {
-        id: opener
+        id: subOpener
 
-        menu: root.currentMenu
+        menu: root.currentSubmenu
     }
 
-    Timer {
-        interval: 1200
-        running: root.visible && !root.pointerInside
-        onTriggered: root.dismiss()
-    }
-
-    // Transparent backdrop: a click anywhere outside the menu box closes.
+    // Backdrop: a click anywhere outside the menu box closes.
     MouseArea {
         anchors.fill: parent
         onClicked: root.dismiss()
@@ -97,22 +106,18 @@ PopupWindow {
     Rectangle {
         id: menuBox
 
-        anchors.left: parent.left
-        anchors.right: parent.right
+        x: root.boxX
         anchors.top: parent.top
+        width: root.boxWidth
         height: Math.min(menuColumn.implicitHeight + 16, root.fixedHeight)
         radius: 8
         color: Theme.barBg
         border.width: 1
         border.color: Theme.line
 
+        // Swallow clicks on the box chrome so they don't hit the backdrop.
         MouseArea {
             anchors.fill: parent
-            hoverEnabled: true
-            onEntered: root.pointerInside = true
-            onExited: root.pointerInside = false
-            // Only tracks enter/leave; clicks fall through to the rows.
-            acceptedButtons: Qt.NoButton
         }
 
         Flickable {
@@ -174,7 +179,7 @@ PopupWindow {
                 }
 
                 Repeater {
-                    model: opener.children
+                    model: root.currentChildren
 
                     delegate: Column {
                         id: entryBlock
@@ -265,7 +270,8 @@ PopupWindow {
                 }
 
                 Text {
-                    visible: opener.children === null || opener.children.values.length === 0
+                    visible: root.currentChildren === null
+                        || root.currentChildren.values.length === 0
                     text: root.menuPath.length > 0 ? "empty" : "no actions"
                     font.family: Theme.monoFamily
                     font.pixelSize: Theme.fontSize - 2

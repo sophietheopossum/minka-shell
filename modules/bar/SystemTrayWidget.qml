@@ -24,11 +24,10 @@ Row {
         const window = root.QsWindow.window;
         if (!window || !item.menu)
             return;
-        // Position under the icon, in window coordinates; clamp so the
-        // popup never overflows the right screen edge.
+        // Position the menu box under the icon, in window coordinates;
+        // TrayMenu clamps it away from the screen edges itself.
         const pos = anchorItem.mapToItem(null, 0, anchorItem.height + 7);
-        const x = Math.min(pos.x, window.width - trayMenu.implicitWidth - 8);
-        trayMenu.openAt(window, x, pos.y, item.menu);
+        trayMenu.openAt(window, pos.x, pos.y, item.menu);
     }
 
     Repeater {
