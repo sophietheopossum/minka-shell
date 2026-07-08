@@ -65,6 +65,10 @@ Singleton {
         send("windows.activate", { windowId: windowId });
     }
 
+    function closeWindow(windowId) {
+        send("windows.close", { windowId: windowId });
+    }
+
     function monitorView(connectorName) {
         const v = root.view;
         if (!v)
