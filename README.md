@@ -47,9 +47,11 @@ design artifact for the full architecture.
 - [ ] M2 remainder: dock pinning (waits on dock testing). Out of scope by
       decision: clipboard menu (dropped), wallpaper switcher (moves to the
       future Minka settings utility).
-- [ ] M3: `minka-fx` (Guido) takes snap preview + OSDs; drop the `ags request`
-      exec path once shoji-bar-2 retires. Dock testing also waits for
-      shoji-bar-2 retirement (its dock currently owns the proximity zone).
+- [x] M3 (in progress): shoji-bar-2 retired — the ShojiWM config now spawns
+      MinkaShell as the session shell (logs at /tmp/minkashell.log) and the
+      `ags request` paths are gone. MinkaFX (wgpu overlay process, see
+      ../MinkaFX) takes the snap preview; OSDs next. Dock testing is now
+      unblocked (MinkaShell's dock owns the proximity zone).
 
 ## Running
 
