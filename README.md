@@ -36,9 +36,11 @@ design artifact for the full architecture.
       source via PipeWire. Audio only — network is handled by CMST, per
       Sophie.
 - [x] Focused-window title in the bar (per monitor, elided at 320px).
-- [x] Fixes from testing: tray right-click menus now open via QsMenuAnchor
-      (the display() path errored on CMST); launcher search matches desktop
-      id/exec/keywords, with name-prefix hits ranked first.
+- [x] Fixes from testing: tray right-click menus are self-rendered
+      (TrayMenu: PopupWindow + QsMenuOpener over the DBus menu tree) after
+      both Qt platform-menu paths (display(), QsMenuAnchor) errored on
+      ShojiWM; launcher search matches desktop id/exec/keywords, with
+      name-prefix hits ranked first.
 - [ ] M2 remainder: dock pinning (waits on dock testing). Out of scope by
       decision: clipboard menu (dropped), wallpaper switcher (moves to the
       future Minka settings utility).
