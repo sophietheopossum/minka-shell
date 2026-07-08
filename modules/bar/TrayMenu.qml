@@ -7,21 +7,26 @@ import "../../services"
 // menu tree through QsMenuOpener and draw it ourselves — which also keeps it
 // in the Eternal-Darkness theme instead of a foreign Qt popup.
 //
-// The popup window is sized ONCE at open and never resized: submenu
-// expansion grows the menu box inside a transparent window instead.
-// (Resizing a mapped xdg_popup made ShojiWM drop the popup, which is what
-// closed the menu the moment a CMST submenu was expanded.) Clicking the
-// transparent region below the menu dismisses it, giving us click-outside
-// behavior for free.
+// Two hard-won rules encoded here:
+//  1. The popup window is sized ONCE at open and never resized while
+//     mapped (the menu box grows inside a transparent window instead) —
+//     resizing a mapped popup is compositor-hostile.
+//  2. Exactly ONE QsMenuOpener exists per menu. Submenus NAVIGATE (with a
+//     back row) rather than expanding inline: attaching a second opener to
+//     a child entry makes apps like CMST bump their dbusmenu layout
+//     revision, which resets the root opener's model, tears down the
+//     delegate hosting the child opener, and loops — the menu silently
+//     self-destructs with nothing in the log.
 PopupWindow {
     id: root
 
     property var menuHandle: null
 
-    // Which top-level entry's submenu is expanded (-1: none). Held here
-    // rather than in the delegates so a DBus layout update that rebuilds
-    // the children model can't wipe interaction state mid-click.
-    property int expandedIndex: -1
+    // Navigation stack of QsMenuEntry handles; empty = at the root menu.
+    property var menuPath: []
+
+    readonly property var currentMenu: menuPath.length > 0
+        ? menuPath[menuPath.length - 1] : menuHandle
 
     property int fixedHeight: 440
 
@@ -35,7 +40,7 @@ PopupWindow {
 
     function openAt(window, x, y, handle) {
         menuHandle = handle;
-        expandedIndex = -1;
+        menuPath = [];
         anchor.window = window;
         anchor.rect.x = x;
         anchor.rect.y = y;
@@ -49,13 +54,21 @@ PopupWindow {
     function dismiss() {
         visible = false;
         menuHandle = null;
-        expandedIndex = -1;
+        menuPath = [];
+    }
+
+    function enter(entry) {
+        menuPath = menuPath.concat([entry]);
+    }
+
+    function back() {
+        menuPath = menuPath.slice(0, -1);
     }
 
     QsMenuOpener {
         id: opener
 
-        menu: root.menuHandle
+        menu: root.currentMenu
     }
 
     Timer {
@@ -104,6 +117,51 @@ PopupWindow {
                 width: parent.width
                 spacing: 1
 
+                // Back row while inside a submenu.
+                Rectangle {
+                    visible: root.menuPath.length > 0
+                    width: parent.width
+                    height: 26
+                    radius: 5
+                    color: backArea.containsMouse ? Theme.surfaceRaised : "transparent"
+
+                    Row {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 6
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "‹"
+                            font.pixelSize: Theme.fontSize
+                            color: Theme.red
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "back"
+                            font.family: Theme.monoFamily
+                            font.pixelSize: Theme.fontSize - 2
+                            color: Theme.textMuted
+                        }
+                    }
+
+                    MouseArea {
+                        id: backArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: root.back()
+                    }
+                }
+
+                Rectangle {
+                    visible: root.menuPath.length > 0
+                    width: parent.width
+                    height: 1
+                    color: Theme.line
+                }
+
                 Repeater {
                     model: opener.children
 
@@ -111,9 +169,6 @@ PopupWindow {
                         id: entryBlock
 
                         required property var modelData
-                        required property int index
-
-                        readonly property bool subOpen: index === root.expandedIndex
 
                         width: menuColumn.width
 
@@ -175,7 +230,7 @@ PopupWindow {
                                 anchors.rightMargin: 8
                                 anchors.verticalCenter: parent.verticalCenter
                                 visible: entryBlock.modelData.hasChildren
-                                text: entryBlock.subOpen ? "▾" : "▸"
+                                text: "▸"
                                 font.pixelSize: Theme.fontSize - 3
                                 color: Theme.textFaint
                             }
@@ -187,71 +242,10 @@ PopupWindow {
                                 enabled: entryBlock.modelData.enabled
                                 onClicked: {
                                     if (entryBlock.modelData.hasChildren) {
-                                        root.expandedIndex = entryBlock.subOpen ? -1 : entryBlock.index;
+                                        root.enter(entryBlock.modelData);
                                     } else {
                                         entryBlock.modelData.triggered();
                                         root.dismiss();
-                                    }
-                                }
-                            }
-                        }
-
-                        // Inline submenu (one level)
-                        QsMenuOpener {
-                            id: subOpener
-
-                            menu: entryBlock.subOpen ? entryBlock.modelData : null
-                        }
-
-                        Column {
-                            visible: entryBlock.subOpen
-                            width: parent.width
-                            spacing: 1
-
-                            Repeater {
-                                model: entryBlock.subOpen ? subOpener.children : null
-
-                                delegate: Rectangle {
-                                    id: subEntry
-
-                                    required property var modelData
-
-                                    width: menuColumn.width
-                                    height: modelData.isSeparator ? 5 : 24
-                                    radius: 5
-                                    color: subArea.containsMouse && subEntry.modelData.enabled
-                                        ? Theme.surfaceRaised : "transparent"
-
-                                    Rectangle {
-                                        visible: subEntry.modelData.isSeparator
-                                        anchors.centerIn: parent
-                                        width: parent.width - 24
-                                        height: 1
-                                        color: Theme.line
-                                    }
-
-                                    Text {
-                                        visible: !subEntry.modelData.isSeparator
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: 24
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: subEntry.modelData.text
-                                        font.family: Theme.fontFamily
-                                        font.pixelSize: Theme.fontSize - 2
-                                        color: subEntry.modelData.enabled ? Theme.textMuted : Theme.textFaint
-                                        elide: Text.ElideRight
-                                        width: parent.width - 32
-                                    }
-
-                                    MouseArea {
-                                        id: subArea
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        enabled: !subEntry.modelData.isSeparator && subEntry.modelData.enabled
-                                        onClicked: {
-                                            subEntry.modelData.triggered();
-                                            root.dismiss();
-                                        }
                                     }
                                 }
                             }
@@ -261,7 +255,7 @@ PopupWindow {
 
                 Text {
                     visible: opener.children === null || opener.children.values.length === 0
-                    text: "no actions"
+                    text: root.menuPath.length > 0 ? "empty" : "no actions"
                     font.family: Theme.monoFamily
                     font.pixelSize: Theme.fontSize - 2
                     color: Theme.textFaint
