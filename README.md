@@ -20,11 +20,13 @@ design artifact for the full architecture.
 
 - [x] Bar right cluster: StatusNotifier tray (left/middle/right-click per the
       SNI spec), UPower battery, CPU/RAM sampler.
-- [x] Start-menu button + launcher: fuzzy-ish search over desktop entries,
-      Enter launches the top hit, Escape closes, session controls
-      (sleep/reboot/poweroff). Opens via bar button or the `ui.startMenu`
-      broadcast (Super+A / Super tap — config now broadcasts alongside the
-      legacy `ags request` so both shells respond during the transition).
+- [x] Start-menu button + launcher: fullscreen searchable app grid (KDE
+      "Application Dashboard" / Win8 style), Enter launches the top hit,
+      Escape or empty-space click closes, session controls
+      (logout/sleep/reboot/poweroff). Opens via bar button or the
+      `ui.startMenu` broadcast (Super+A / Super tap — config now broadcasts
+      alongside the legacy `ags request` so both shells respond during the
+      transition).
 - [x] Dock: revealed by the compositor's `dock.proximity` broadcast, running
       windows with focus indicator, click to activate.
 - [x] Notification popups (`org.freedesktop.Notifications` server in
@@ -39,8 +41,9 @@ design artifact for the full architecture.
 - [x] Fixes from testing: tray right-click menus are self-rendered
       (TrayMenu: PopupWindow + QsMenuOpener over the DBus menu tree) after
       both Qt platform-menu paths (display(), QsMenuAnchor) errored on
-      ShojiWM; launcher search matches desktop id/exec/keywords, with
-      name-prefix hits ranked first.
+      ShojiWM — see TrayMenu.qml's header for the dbusmenu lifetime rules
+      that took four rounds to learn; launcher search matches desktop
+      id/exec/keywords, with name-prefix hits ranked first.
 - [ ] M2 remainder: dock pinning (waits on dock testing). Out of scope by
       decision: clipboard menu (dropped), wallpaper switcher (moves to the
       future Minka settings utility).
