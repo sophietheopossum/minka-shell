@@ -11,12 +11,16 @@ import "../../services"
 //  1. The popup window is sized ONCE at open and never resized while
 //     mapped (the menu box grows inside a transparent window instead) —
 //     resizing a mapped popup is compositor-hostile.
-//  2. Exactly ONE QsMenuOpener exists per menu. Submenus NAVIGATE (with a
-//     back row) rather than expanding inline: attaching a second opener to
-//     a child entry makes apps like CMST bump their dbusmenu layout
-//     revision, which resets the root opener's model, tears down the
-//     delegate hosting the child opener, and loops — the menu silently
-//     self-destructs with nothing in the log.
+//  2. The root menu handle stays pinned by a dedicated opener for as long
+//     as the popup is open. quickshell destroys the ENTIRE dbusmenu tree
+//     when the root handle's refcount drops to zero (dbusmenu.cpp:
+//     unrefHandle -> onMenuPathChanged -> deleteLater), so a lone opener
+//     that navigates from the root into a child entry frees the very entry
+//     it navigated to — the submenu flashes empty, then collapses. Layout
+//     updates reuse items by id, so pinned entries survive them. Corollary:
+//     openers must live at window scope, never inside delegates — a layout
+//     update resets the model, tears down the delegate (and its opener),
+//     and loops via AboutToShow.
 PopupWindow {
     id: root
 
@@ -65,6 +69,13 @@ PopupWindow {
         menuPath = menuPath.slice(0, -1);
     }
 
+    // Pin: holds a ref on the root handle for the popup's lifetime so the
+    // tree (and any entry the nav opener points at) is never freed mid-use.
+    QsMenuOpener {
+        menu: root.menuHandle
+    }
+
+    // Nav: follows the navigation stack; renders whichever level is current.
     QsMenuOpener {
         id: opener
 
