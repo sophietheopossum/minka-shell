@@ -4,12 +4,32 @@ import QtQuick
 import "../../services"
 
 // StatusNotifier tray. Left click activates (or opens the menu for
-// menu-only items); right click opens the item's DBus menu as a native
-// popup anchored under the icon; middle click secondary-activates.
+// menu-only items); right click opens the item's DBus menu in our own
+// themed popup (TrayMenu); middle click secondary-activates.
 Row {
     id: root
 
     spacing: 6
+
+    TrayMenu {
+        id: trayMenu
+    }
+
+    function openMenuFor(item, anchorItem) {
+        // Same handle already open -> treat the click as a toggle.
+        if (trayMenu.visible && trayMenu.menuHandle === item.menu) {
+            trayMenu.dismiss();
+            return;
+        }
+        const window = root.QsWindow.window;
+        if (!window || !item.menu)
+            return;
+        // Position under the icon, in window coordinates; clamp so the
+        // popup never overflows the right screen edge.
+        const pos = anchorItem.mapToItem(null, 0, anchorItem.height + 7);
+        const x = Math.min(pos.x, window.width - trayMenu.implicitWidth - 8);
+        trayMenu.openAt(window, x, pos.y, item.menu);
+    }
 
     Repeater {
         model: SystemTray.items
@@ -32,19 +52,6 @@ Row {
                 opacity: trayArea.containsMouse ? 1.0 : 0.85
             }
 
-            // Native menu popup anchored to this icon, opening downward
-            // from under the bar. (The previous display() call referenced
-            // the QsWindow attached property from plain JS, which is
-            // invalid and errored on menu-carrying items like CMST.)
-            QsMenuAnchor {
-                id: menuAnchor
-
-                menu: trayItem.modelData.menu
-                anchor.item: trayItem
-                anchor.edges: Edges.Bottom
-                anchor.gravity: Edges.Bottom
-            }
-
             MouseArea {
                 id: trayArea
                 anchors.fill: parent
@@ -56,7 +63,7 @@ Row {
                         item.secondaryActivate();
                     } else if (mouse.button === Qt.RightButton || item.onlyMenu) {
                         if (item.hasMenu)
-                            menuAnchor.open();
+                            root.openMenuFor(item, trayItem);
                     } else {
                         item.activate();
                     }
