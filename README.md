@@ -27,8 +27,11 @@ design artifact for the full architecture.
       `ui.startMenu` broadcast (Super+A / Super tap — config now broadcasts
       alongside the legacy `ags request` so both shells respond during the
       transition).
-- [x] Dock: revealed by the compositor's `dock.proximity` broadcast, running
-      windows with focus indicator, click to activate.
+- [x] Dock: persistent taskbar (no auto-hide, per Sophie 8/7/2026) with icon +
+      window title chips, exclusive zone, click to activate, middle-click to
+      close, right-click menu with a close action (`windows.close` IPC). In
+      duo mode the ScreenPad instance lists every monitor's windows. The
+      compositor's `dock.proximity` broadcast is no longer consumed.
 - [x] Notification popups (`org.freedesktop.Notifications` server in
       `services/Notifs.qml`), panel-output only, 6s expiry, click to dismiss.
 - [x] Calendar menu: bar clock toggles a Monday-first month view, today in
@@ -91,6 +94,7 @@ modules/notifications/NotifPopup.qml
 ## IPC contract (served by the ShojiWM config)
 
 Requests: `workspaces.get`, `workspaces.switch`, `workspaces.activate`,
-`workspaces.toggleTiling`, `windows.activate`.
-Broadcasts consumed: `workspaces.changed`, `dock.proximity`, `snap.preview`
-(snap preview moves to minka-fx in M3).
+`workspaces.toggleTiling`, `windows.activate`, `windows.close`,
+`debug.geometry` (diagnostic dump: outputs, layer zones, usable areas).
+Broadcasts consumed: `workspaces.changed` (snap.preview belongs to MinkaFX
+now; dock.proximity is no longer consumed by anything).
