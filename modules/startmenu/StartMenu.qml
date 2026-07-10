@@ -5,7 +5,9 @@ import "../../services"
 
 // Application launcher: a fullscreen searchable app grid (KDE "Application
 // Dashboard" / Windows 8 style, per Sophie), one per output; MenuState
-// decides which instance is open (in Duo mode always the ScreenPad's).
+// decides which instance is open
+// (follows the cursor's display, even in
+// Duo mode).
 // Opened by the bar button or the ui.startMenu IPC broadcast (Super+A /
 // Super tap in the ShojiWM config). Escape or a click on empty space closes.
 PanelWindow {

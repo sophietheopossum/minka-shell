@@ -4,8 +4,10 @@ import QtQuick
 
 // Cross-window menu state: bar buttons and ui.* IPC broadcasts both funnel
 // through here, and menu windows bind their visibility to it. One menu open
-// at a time shell-wide. In Duo mode menus always open on the ScreenPad
-// regardless of which monitor triggered them (ARCH_MAP requirement 3).
+// at a time shell-wide.
+// In Duo mode the bar dropdowns open on the ScreenPad
+// with the bar itself (ARCH_MAP requirement 3)
+// the start menu follows the cursor: Super opens it on whichever display the pointer is on.
 Singleton {
     id: root
 
@@ -16,8 +18,15 @@ Singleton {
         return openMenu[screenName] === menu;
     }
 
-    function _resolveTarget(connector) {
-        if (ShellLayout.duoMode) {
+    function _resolveTarget(
+        menu, 
+        connector,
+    ) {
+        if (
+            ShellLayout.duoMode
+            &&
+            menu !== "start"
+        ) {
             const pad = Quickshell.screens.find(s => ShellLayout.isScreenPad(s));
             if (pad)
                 return pad.name;
@@ -29,7 +38,10 @@ Singleton {
     }
 
     function toggle(menu, connector, action) {
-        const target = _resolveTarget(connector);
+        const target = _resolveTarget(
+            menu,
+            connector,
+        );
         if (target === "")
             return;
         const act = action === undefined ? "toggle" : action;
