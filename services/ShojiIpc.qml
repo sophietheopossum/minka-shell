@@ -69,6 +69,32 @@ Singleton {
         send("windows.close", { windowId: windowId });
     }
 
+    function minimizeWindow(windowId) {
+        send("windows.minimize", { windowId: windowId });
+    }
+
+    function maximizeWindow(windowId, maximized) {
+        send("windows.maximize", { windowId: windowId, maximized: maximized });
+    }
+
+    // Focused window for a bar on `monitorName`: per-monitor in the general
+    // layout, session-wide in Duo mode (the single ScreenPad bar speaks for
+    // every monitor).
+    function focusedWindowFor(monitorName) {
+        const monitors = ShellLayout.duoMode
+            ? (root.view ? root.view.monitors : [])
+            : [monitorView(monitorName)];
+        for (const monitor of monitors) {
+            if (!monitor)
+                continue;
+            for (const workspace of monitor.workspaces)
+                for (const win of workspace.windows)
+                    if (win.focused)
+                        return win;
+        }
+        return null;
+    }
+
     function monitorView(connectorName) {
         const v = root.view;
         if (!v)

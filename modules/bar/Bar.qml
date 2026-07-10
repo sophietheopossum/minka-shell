@@ -76,6 +76,11 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 monitorName: root.modelData.name
             }
+
+            WindowControls {
+                anchors.verticalCenter: parent.verticalCenter
+                monitorName: root.modelData.name
+            }
         }
 
         // Clock doubles as the calendar-menu toggle.
