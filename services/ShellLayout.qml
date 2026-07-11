@@ -26,6 +26,10 @@ Singleton {
     // "auto" | "duo" | "general" — anything unrecognized is treated as auto.
     property string configuredLayout: "auto"
 
+    // Absolute path of the wallpaper image, or "" for none. Set by
+    // MinkaConf's wallpaper page (shell.wallpaper in minka-settings.json).
+    property string wallpaper: ""
+
     readonly property bool duoMode: configuredLayout === "duo" ? true
                                   : configuredLayout === "general" ? false
                                   : screenPadPresent
@@ -47,11 +51,15 @@ Singleton {
         onLoaded: {
             try {
                 const data = JSON.parse(settingsFile.text());
-                const layout = data && data.shell ? data.shell.layout : undefined;
+                const shell = data && data.shell ? data.shell : {};
+                const layout = shell.layout;
                 root.configuredLayout =
                     layout === "duo" || layout === "general" ? layout : "auto";
+                root.wallpaper =
+                    typeof shell.wallpaper === "string" ? shell.wallpaper : "";
             } catch (e) {
                 root.configuredLayout = "auto";
+                root.wallpaper = "";
             }
         }
     }

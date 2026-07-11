@@ -1,6 +1,7 @@
 import Quickshell
 import "services"
 import "modules/bar"
+import "modules/wallpaper"
 import "modules/dock"
 import "modules/startmenu"
 import "modules/notifications"
@@ -18,6 +19,10 @@ ShellRoot {
             id: scope
 
             required property var modelData
+
+            Wallpaper {
+                modelData: scope.modelData
+            }
 
             Bar {
                 modelData: scope.modelData
