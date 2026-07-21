@@ -45,7 +45,7 @@ Singleton {
     FileView {
         id: settingsFile
 
-        path: Quickshell.env("HOME") + "/.config/shojiwm/src/minka-settings.json"
+        path: Quickshell.env("HOME") + "/.config/minka-settings.json"
         watchChanges: true
         onFileChanged: reload()
         onLoaded: {
