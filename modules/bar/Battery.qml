@@ -3,9 +3,11 @@ import Quickshell.Services.UPower
 import "../../services"
 
 // Battery as a tray-style icon applet, from UPower's aggregate display
-// device. Hidden entirely on desktops. Red below 20% while discharging;
-// purple lightning overlay while charging. Percent/time details live in
-// the status menu, which opens on click.
+// device. Hidden entirely on desktops.
+// The percent (sans % sign) renders inside the battery body
+// red below 20% while discharging
+// purple lightning beside the icon while charging.
+// Click opens the status menu.
 Item {
     id: root
 
@@ -24,7 +26,7 @@ Item {
         : Theme.textFaint
 
     visible: present
-    width: 18
+    width: chargeBolt.visible ? 24 + 2 + chargeBolt.implicitWidth : 24
     height: 18
 
     Rectangle {
@@ -32,8 +34,8 @@ Item {
 
         anchors.verticalCenter: parent.verticalCenter
         x: 0
-        width: 15
-        height: 9
+        width: 22
+        height: 11
         radius: 2
         color: "transparent"
         border.width: 1
@@ -48,6 +50,18 @@ Item {
             radius: 1
             color: root.low ? Theme.red : root.charging ? Theme.purple : Theme.textMuted
         }
+
+        // Outlined so it stays legible over both the fill and the empty
+        // region behind it.
+        Text {
+            anchors.centerIn: parent
+            text: root.percent
+            font.family: Theme.monoFamily
+            font.pixelSize: 8
+            color: Theme.text
+            style: Text.Outline
+            styleColor: Theme.ground
+        }
     }
 
     // Terminal nub.
@@ -60,13 +74,15 @@ Item {
     }
 
     Text {
-        anchors.centerIn: body
+        id: chargeBolt
+
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.left: body.right
+        anchors.leftMargin: 4
         visible: root.charging
         text: "⚡"
         font.pixelSize: 9
         color: Theme.purple
-        style: Text.Outline
-        styleColor: Theme.ground
     }
 
     MouseArea {
