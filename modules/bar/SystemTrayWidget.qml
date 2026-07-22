@@ -3,11 +3,18 @@ import Quickshell.Services.SystemTray
 import QtQuick
 import "../../services"
 
-// StatusNotifier tray. Left click activates (or opens the menu for
-// menu-only items); right click opens the item's DBus menu in our own
-// themed popup (TrayMenu); middle click secondary-activates.
+// StatusNotifier tray
+// includes the native volume/battery applets, presented as one cluster.
+// SNI items:
+// left click activates (or opens the menu for
+// menu-only items);
+// right click opens the item's DBus menu in our own
+// themed popup (TrayMenu);
+// middle click secondary-activates.
 Row {
     id: root
+
+    property string monitorName: ""
 
     spacing: 6
 
@@ -69,5 +76,17 @@ Row {
                 }
             }
         }
+    }
+
+    // Native applets, after the SNI items so system state sits nearest the
+    // bar edge.
+    Volume {
+        anchors.verticalCenter: parent.verticalCenter
+        monitorName: root.monitorName
+    }
+
+    Battery {
+        anchors.verticalCenter: parent.verticalCenter
+        monitorName: root.monitorName
     }
 }

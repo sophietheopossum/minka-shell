@@ -117,17 +117,11 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
             }
 
-            Volume {
-                anchors.verticalCenter: parent.verticalCenter
-                monitorName: root.modelData.name
-            }
-
+            // Volume & battery live inside the tray cluster as native
+            // applets.
             SystemTrayWidget {
                 anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Battery {
-                anchors.verticalCenter: parent.verticalCenter
+                monitorName: root.modelData.name
             }
 
             // IPC health: red until the first workspace view arrives on the

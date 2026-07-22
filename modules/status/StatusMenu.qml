@@ -1,10 +1,13 @@
 import Quickshell
 import QtQuick
 import Quickshell.Services.Pipewire
+import Quickshell.Services.UPower
 import "../../services"
 
-// Audio status menu (network is out of scope — Sophie runs CMST). Volume
-// slider + mute for the default sink, mute + slider for the default source.
+// Audio/battery status menu (network is out of scope — Sophie runs CMST).
+// Volume slider + mute for the default sink
+// mute + slider for the default source
+// battery percent/state line on laptops
 PanelWindow {
     id: root
 
@@ -198,6 +201,68 @@ PanelWindow {
                 font.family: Theme.monoFamily
                 font.pixelSize: Theme.fontSize - 2
                 color: Theme.textFaint
+            }
+
+            Row {
+                id: batteryRow
+
+                readonly property var device: UPower.displayDevice
+                readonly property bool present: device !== null && device.isLaptopBattery
+                readonly property bool charging: present
+                    && device.state === UPowerDeviceState.Charging
+                readonly property int percent: present
+                    ? Math.round(device.percentage * 100) : 0
+                readonly property bool low: present && !charging && percent <= 20
+
+                function fmtSecs(s) {
+                    if (s <= 0)
+                        return "";
+                    const h = Math.floor(s / 3600);
+                    const m = Math.round((s % 3600) / 60);
+                    return h > 0 ? h + "h " + m + "m" : m + "m";
+                }
+
+                readonly property string stateText: {
+                    if (!present)
+                        return "";
+                    if (device.state === UPowerDeviceState.FullyCharged)
+                        return "full";
+                    if (charging) {
+                        const t = fmtSecs(device.timeToFull);
+                        return t ? "charging · " + t + " to full" : "charging";
+                    }
+                    const t = fmtSecs(device.timeToEmpty);
+                    return t ? t + " left" : "discharging";
+                }
+
+                visible: present
+                width: parent.width
+                spacing: 8
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "bat"
+                    font.family: Theme.monoFamily
+                    font.pixelSize: Theme.fontSize - 3
+                    font.letterSpacing: 1
+                    color: Theme.textFaint
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: batteryRow.percent + "%"
+                    font.family: Theme.monoFamily
+                    font.pixelSize: Theme.fontSize - 2
+                    color: batteryRow.low ? Theme.red : Theme.text
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: batteryRow.stateText
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize - 2
+                    color: batteryRow.charging ? Theme.purple : Theme.textMuted
+                }
             }
         }
     }

@@ -2,10 +2,14 @@ import QtQuick
 import Quickshell.Services.UPower
 import "../../services"
 
-// Battery readout from UPower's aggregate display device. Hidden entirely on
-// desktops. Red below 20% while discharging; purple lightning while charging.
-Row {
+// Battery as a tray-style icon applet, from UPower's aggregate display
+// device. Hidden entirely on desktops. Red below 20% while discharging;
+// purple lightning overlay while charging. Percent/time details live in
+// the status menu, which opens on click.
+Item {
     id: root
+
+    property string monitorName: ""
 
     readonly property var device: UPower.displayDevice
     readonly property bool present: device !== null && device.isLaptopBattery
@@ -15,25 +19,25 @@ Row {
     readonly property int percent: present ? Math.round(device.percentage * 100) : 0
     readonly property bool low: present && !charging && percent <= 20
 
-    visible: present
-    spacing: 4
+    readonly property color chromeColor: low ? Theme.red
+        : batteryArea.containsMouse ? Theme.text
+        : Theme.textFaint
 
-    Text {
-        anchors.verticalCenter: parent.verticalCenter
-        visible: root.charging
-        text: "⚡"
-        font.pixelSize: Theme.fontSize - 2
-        color: Theme.purple
-    }
+    visible: present
+    width: 18
+    height: 18
 
     Rectangle {
+        id: body
+
         anchors.verticalCenter: parent.verticalCenter
-        width: 22
-        height: 11
+        x: 0
+        width: 15
+        height: 9
         radius: 2
         color: "transparent"
         border.width: 1
-        border.color: root.low ? Theme.red : Theme.textFaint
+        border.color: root.chromeColor
 
         Rectangle {
             anchors.left: parent.left
@@ -46,11 +50,30 @@ Row {
         }
     }
 
-    Text {
+    // Terminal nub.
+    Rectangle {
         anchors.verticalCenter: parent.verticalCenter
-        text: root.percent + "%"
-        font.family: Theme.monoFamily
-        font.pixelSize: Theme.fontSize - 1
-        color: root.low ? Theme.red : Theme.textMuted
+        anchors.left: body.right
+        width: 2
+        height: 5
+        color: root.chromeColor
+    }
+
+    Text {
+        anchors.centerIn: body
+        visible: root.charging
+        text: "⚡"
+        font.pixelSize: 9
+        color: Theme.purple
+        style: Text.Outline
+        styleColor: Theme.ground
+    }
+
+    MouseArea {
+        id: batteryArea
+
+        anchors.fill: parent
+        hoverEnabled: true
+        onClicked: MenuState.toggle("status", root.monitorName)
     }
 }
