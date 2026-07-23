@@ -35,9 +35,10 @@ Item {
         onPaint: {
             const ctx = getContext("2d");
             ctx.reset();
-            const c = root.muted ? Theme.textFaint
-                    : volumeArea.containsMouse ? Theme.text
-                    : Theme.textMuted;
+            // Rest at textFaint like the battery chrome so the hover jump
+            // to full text brightness actually reads.
+            const c = volumeArea.containsMouse ? Theme.text
+                : Theme.textFaint;
             ctx.strokeStyle = c;
             ctx.fillStyle = c;
             ctx.lineWidth = 1.4;
