@@ -28,6 +28,10 @@ ShellRoot {
                 modelData: scope.modelData
             }
 
+            MenuBackdrop {
+                modelData: scope.modelData
+            }
+
             Dock {
                 modelData: scope.modelData
             }

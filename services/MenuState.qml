@@ -24,6 +24,15 @@ Singleton {
         return openMenu[screenName] === menu;
     }
 
+    // True while a bar dropdown is open. Excludes the start menu, which is
+    // fullscreen and handles its own click-away dismissal.
+    readonly property bool dropdownOpen: {
+        for (const name in openMenu)
+            if (openMenu[name] && openMenu[name] !== "start")
+                return true;
+        return false;
+    }
+
     function _resolveTarget(
         menu, 
         connector,

@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Wayland
 import QtQuick
 import Quickshell.Services.Pipewire
 import "../../services"
@@ -18,6 +19,9 @@ PanelWindow {
 
     screen: modelData
     visible: open
+    // Above MenuBackdrop's top layer, so the backdrop can never eat clicks
+    // meant for the menu.
+    WlrLayershell.layer: WlrLayer.Overlay
     anchors.top: true
     anchors.right: true
     margins.top: Theme.barHeight + 6
