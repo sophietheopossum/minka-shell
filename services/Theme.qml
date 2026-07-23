@@ -1,34 +1,37 @@
 pragma Singleton
 import Quickshell
 import QtQuick
+// Through the config-root symlink: Quickshell only honours qmldir
+// singleton registration for paths inside the shell root.
+import "../Proustite"
 
-// Eternal Darkness design tokens: high-contrast black and red, purple as a
-// strictly tertiary accent. Every module styles through these — no literal
-// colors in widgets — so the M4 theme.json hot-reload only has to touch this
-// file's bindings.
+// Thin facade over the shared Proustite palette (successor to the Eternal
+// Darkness tokens that used to live here) plus the shell's own metrics.
+// Every module styles through these — no literal colors in widgets — so a
+// palette edit in Proustite reaches every Minka app at once.
 Singleton {
     // grounds
-    readonly property color ground: "#0a0709"
-    readonly property color surface: "#161013"
-    readonly property color surfaceRaised: "#1e161a"
-    readonly property color line: "#2e2228"
+    readonly property color ground: Proustite.ground
+    readonly property color surface: Proustite.surface
+    readonly property color surfaceRaised: Proustite.surfaceRaised
+    readonly property color line: Proustite.line
 
     // content
-    readonly property color text: "#ece5e7"
-    readonly property color textMuted: "#a3959b"
-    readonly property color textFaint: "#6e6167"
+    readonly property color text: Proustite.text
+    readonly property color textMuted: Proustite.textMuted
+    readonly property color textFaint: Proustite.textFaint
 
     // accents
-    readonly property color red: "#e0263c"
-    readonly property color redDim: "#8f1e2d"
-    readonly property color purple: "#a488c9"
-    readonly property color purpleDim: "#4c3a63"
+    readonly property color red: Proustite.red
+    readonly property color redDim: Proustite.redDim
+    readonly property color purple: Proustite.purple
+    readonly property color purpleDim: Proustite.purpleDim
 
     // bar
     readonly property color barBg: Qt.rgba(0.039, 0.027, 0.035, 0.92)
     readonly property int barHeight: 32
 
-    readonly property string fontFamily: "Noto Sans"
-    readonly property string monoFamily: "monospace"
-    readonly property int fontSize: 13
+    readonly property string fontFamily: Proustite.fontFamily
+    readonly property string monoFamily: Proustite.monoFamily
+    readonly property int fontSize: Proustite.fontSize
 }
