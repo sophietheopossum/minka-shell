@@ -47,6 +47,10 @@ ShellRoot {
             StatusMenu {
                 modelData: scope.modelData
             }
+
+            BatteryMenu {
+                modelData: scope.modelData
+            }
         }
     }
 }

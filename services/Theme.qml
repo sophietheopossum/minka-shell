@@ -22,6 +22,7 @@ Singleton {
     readonly property color red: "#e0263c"
     readonly property color redDim: "#8f1e2d"
     readonly property color purple: "#a488c9"
+    readonly property color purpleDim: "#4c3a63"
 
     // bar
     readonly property color barBg: Qt.rgba(0.039, 0.027, 0.035, 0.92)

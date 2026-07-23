@@ -11,7 +11,13 @@ import QtQuick
 Singleton {
     id: root
 
-    // screen name -> menu id ("start" | "calendar" | "status" | "")
+    // screen name -> menu id (
+    // "start" | 
+    // "calendar" | 
+    // "status" | 
+    // "battery" | 
+    // ""
+    // )
     property var openMenu: ({})
 
     function isOpen(menu, screenName) {

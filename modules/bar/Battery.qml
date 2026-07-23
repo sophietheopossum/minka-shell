@@ -5,9 +5,9 @@ import "../../services"
 // Battery as a tray-style icon applet, from UPower's aggregate display
 // device. Hidden entirely on desktops.
 // The percent (sans % sign) renders inside the battery body
-// red below 20% while discharging
-// purple lightning beside the icon while charging.
-// Click opens the status menu.
+// over deliberately dim fills — the number is the
+// primary readout, the fill a secondary cue. Red when low; purple lightning
+// beside the icon while charging. Click opens the battery menu.
 Item {
     id: root
 
@@ -26,7 +26,7 @@ Item {
         : Theme.textFaint
 
     visible: present
-    width: chargeBolt.visible ? 24 + 2 + chargeBolt.implicitWidth : 24
+    width: chargeBolt.visible ? 26 + 2 + chargeBolt.implicitWidth : 26
     height: 18
 
     Rectangle {
@@ -34,8 +34,8 @@ Item {
 
         anchors.verticalCenter: parent.verticalCenter
         x: 0
-        width: 22
-        height: 11
+        width: 24
+        height: 13
         radius: 2
         color: "transparent"
         border.width: 1
@@ -48,19 +48,16 @@ Item {
             width: Math.max(1, (parent.width - 4) * root.percent / 100)
             height: parent.height - 4
             radius: 1
-            color: root.low ? Theme.red : root.charging ? Theme.purple : Theme.textMuted
+            color: root.low ? Theme.redDim : root.charging ? Theme.purpleDim : Theme.line
         }
 
-        // Outlined so it stays legible over both the fill and the empty
-        // region behind it.
         Text {
             anchors.centerIn: parent
             text: root.percent
             font.family: Theme.monoFamily
-            font.pixelSize: 8
-            color: Theme.text
-            style: Text.Outline
-            styleColor: Theme.ground
+            font.pixelSize: 9
+            font.bold: true
+            color: root.low ? Theme.red : Theme.text
         }
     }
 
@@ -69,7 +66,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: body.right
         width: 2
-        height: 5
+        height: 6
         color: root.chromeColor
     }
 
@@ -90,6 +87,6 @@ Item {
 
         anchors.fill: parent
         hoverEnabled: true
-        onClicked: MenuState.toggle("status", root.monitorName)
+        onClicked: MenuState.toggle("battery", root.monitorName)
     }
 }
